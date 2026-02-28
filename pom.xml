@@ -60,7 +60,7 @@
                 <artifactId>aspectj-maven-plugin</artifactId>
                 <version>1.14</version> <!-- Используйте актуальную версию -->
                 <configuration>
-                    <complianceLevel>17</complianceLevel> <!-- Укажите вашу версию Java -->
+                    <complianceLevel>21</complianceLevel> <!-- Укажите вашу версию Java -->
                     <source>21</source>
                     <target>21</target>
                 </configuration>
