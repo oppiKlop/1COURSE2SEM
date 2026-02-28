@@ -1,0 +1,33 @@
+server:
+  port: 8081
+
+app:
+  name: Task Manager Application
+  version: 1.0.0
+
+---
+spring:
+  config:
+    activate:
+      on-profile: dev
+logging:
+  level:
+    com.example: DEBUG
+    org.springframework: INFO
+server:
+  port: 8082
+app:
+  name: Task Manager DEV
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
+logging:
+  level:
+    com.example: WARN
+    org.springframework: WARN
+server:
+  port: 80
+app:
+  name: Task Manager PROD
