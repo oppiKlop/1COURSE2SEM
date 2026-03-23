@@ -10,4 +10,8 @@ public class Task {
     private String title;
     private String description;
     private boolean completed = false;
+    private LocalDateTime createdAt;
+    private LocalDate dueDate;
+    private Priority priority;
+    private Set<String> tags;
 }
