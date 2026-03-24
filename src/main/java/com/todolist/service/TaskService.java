@@ -1,41 +1,19 @@
 package com.todolist.service;
 
+import com.todolist.dto.TaskCreateDto;
+import com.todolist.dto.TaskUpdateDto;
 import com.todolist.mapper.TaskMapper;
 import com.todolist.model.Task;
-import jakarta.annotation.PostConstruct;
-import jakarta.annotation.PreDestroy;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Service;
 import com.todolist.repository.TaskRepository;
+import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
+import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 
 @Service
 public class TaskService {
     private final TaskRepository taskRepository;
-
     private final TaskMapper mapper;
-
-    private final Map<Long, Task> taskCache = new HashMap<>();
-
-    private static final Logger log = LoggerFactory.getLogger(TaskService.class);
-
-    @PostConstruct
-    public void init() {
-        for (Task task : taskRepository.getAllTasks()) {
-            taskCache.put(task.getId(), task);
-        }
-    }
-
-    @PreDestroy
-    public void destroy() {
-        log.info("Кол-во задач в кэше: " + taskCache.size());
-    }
-
 
     public TaskService(TaskRepository taskRepository, TaskMapper mapper) {
         this.taskRepository = taskRepository;
@@ -47,19 +25,22 @@ public class TaskService {
     }
 
     public Task getTask(Long id) {
-        Optional<Task> taskOpt = taskRepository.getTask(id);
-        if (taskOpt.isEmpty()) {
-            throw new RuntimeException("Not found task with id: " + id);
-        }
-        return taskOpt.get();
+        return taskRepository.getTask(id)
+                .orElseThrow(() -> new RuntimeException("Task not found"));
     }
 
-    public Task insertTask(String description, String title) {
-        return taskRepository.insertTask(description, title);
+    public Task create(TaskCreateDto dto) {
+        Task task = mapper.toEntity(dto);
+        task.setCreatedAt(LocalDateTime.now());
+        return taskRepository.save(task);
     }
 
-    public Task updateTask(Long id, String description, String title, boolean completed) {
-        return taskRepository.updateTask(id, description, title, completed);
+    public Task update(Long id, TaskUpdateDto dto) {
+        Task task = getTask(id);
+
+        mapper.updateEntity(dto, task);
+
+        return taskRepository.save(task);
     }
 
     public void deleteTask(Long id) {
