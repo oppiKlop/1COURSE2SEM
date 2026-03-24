@@ -1,7 +1,12 @@
-package com.todolist.model;
+package com.todolist.dto;
 
+import jakarta.annotation.Priority;
 import lombok.Builder;
 import lombok.Data;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.Set;
 
 @Builder
 @Data

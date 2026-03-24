@@ -1,7 +1,7 @@
 package com.todolist.repository;
 
 
-import com.todolist.model.Task;
+import com.todolist.dto.Task;
 
 import java.util.List;
 import java.util.Optional;

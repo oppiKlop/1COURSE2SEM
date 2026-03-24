@@ -1,6 +1,6 @@
 package com.todolist.controller;
 
-import com.todolist.model.Task;
+import com.todolist.dto.Task;
 import com.todolist.service.TaskService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

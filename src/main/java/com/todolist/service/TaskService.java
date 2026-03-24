@@ -1,6 +1,6 @@
 package com.todolist.service;
 
-import com.todolist.model.Task;
+import com.todolist.dto.Task;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import org.slf4j.Logger;

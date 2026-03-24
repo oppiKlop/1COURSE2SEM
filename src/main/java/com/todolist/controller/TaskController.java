@@ -1,6 +1,6 @@
 package com.todolist.controller;
 
-import com.todolist.model.Task;
+import com.todolist.dto.Task;
 import com.todolist.scope.PrototypeScopedBean;
 import com.todolist.scope.RequestScopedBean;
 import org.springframework.web.bind.annotation.*;
