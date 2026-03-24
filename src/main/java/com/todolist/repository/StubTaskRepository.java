@@ -1,8 +1,12 @@
 package com.todolist.repository;
 
 import com.todolist.model.Task;
+import com.todolist.repository.TaskRepository;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -22,31 +26,16 @@ public class StubTaskRepository implements TaskRepository {
     }
 
     @Override
-    public Task insertTask(String description, String title) {
-        Task task = Task.builder().title(title).description(description).build();
-        task.setId(idGenerator.getAndIncrement());
+    public Task save(Task task) {
+        if (task.getId() == null) {
+            task.setId(idGenerator.getAndIncrement());
+        }
         stubTasks.put(task.getId(), task);
         return task;
     }
 
     @Override
-    public Task updateTask(Long id, String description, String title, boolean completed) {
-        if (id != 0 && stubTasks.containsKey(id)) {
-            Task task = Task.builder().description(description).title(title).completed(completed).build();
-            stubTasks.put(task.getId(), task);
-            return task;
-        }
-        throw new IllegalArgumentException("Не найдено таски с таким id: " + id);
-    }
-
-    @Override
     public void deleteTask(Long id) {
         stubTasks.remove(id);
-    }
-
-    @Override
-    public void initialize() {
-        insertTask("Task 1", "Task description 1");
-        insertTask("Task 2", "Task description 2");
     }
 }
