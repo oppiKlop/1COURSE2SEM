@@ -1,5 +1,6 @@
 package com.todolist.service;
 
+import com.todolist.mapper.TaskMapper;
 import com.todolist.model.Task;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
@@ -16,6 +17,8 @@ import java.util.Optional;
 @Service
 public class TaskService {
     private final TaskRepository taskRepository;
+
+    private final TaskMapper mapper;
 
     private final Map<Long, Task> taskCache = new HashMap<>();
 
@@ -34,8 +37,9 @@ public class TaskService {
     }
 
 
-    public TaskService(TaskRepository taskRepository) {
+    public TaskService(TaskRepository taskRepository, TaskMapper mapper) {
         this.taskRepository = taskRepository;
+        this.mapper = mapper;
     }
 
     public List<Task> getAllTasks() {

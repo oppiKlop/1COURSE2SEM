@@ -8,15 +8,11 @@ import java.util.Optional;
 
 public interface TaskRepository {
 
-    void initialize();
-
-    Task insertTask(String description, String title);
+    List<Task> getAllTasks();
 
     Optional<Task> getTask(Long id);
 
-    List<Task> getAllTasks();
-
-    Task updateTask(Long id, String description, String title, boolean completed);
+    Task save(Task task);
 
     void deleteTask(Long id);
 }
