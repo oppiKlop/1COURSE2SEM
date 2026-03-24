@@ -1,6 +1,5 @@
 package com.todolist.dto;
 
-import jakarta.annotation.Priority;
 import lombok.Builder;
 import lombok.Data;
 
