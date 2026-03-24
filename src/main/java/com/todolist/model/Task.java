@@ -1,4 +1,4 @@
-package com.todolist.dto;
+package com.todolist.model;
 
 import lombok.Builder;
 import lombok.Data;

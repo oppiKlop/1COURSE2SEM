@@ -1,6 +1,6 @@
 package com.todolist.repository;
 
-import com.todolist.dto.Task;
+import com.todolist.model.Task;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Repository;
 

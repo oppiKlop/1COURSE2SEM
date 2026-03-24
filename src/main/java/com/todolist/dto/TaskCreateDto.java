@@ -1,5 +1,6 @@
 package com.todolist.dto;
 
+import com.todolist.model.Priority;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import jakarta.validation.constraints.FutureOrPresent;
