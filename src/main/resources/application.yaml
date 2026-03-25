@@ -31,3 +31,10 @@ server:
   port: 80
 app:
   name: Task Manager PROD
+
+---
+spring:
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
