@@ -12,8 +12,6 @@ public class RepositoryConfig {
     @Bean
     @Qualifier("repositoryStub")
     public TaskRepository stubRepository() {
-        StubTaskRepository repository = new StubTaskRepository();
-        repository.initialize();
-        return repository;
+        return new StubTaskRepository();
     }
 }

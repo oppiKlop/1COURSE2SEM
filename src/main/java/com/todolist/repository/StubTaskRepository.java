@@ -11,7 +11,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class StubTaskRepository implements TaskRepository {
-
     private final Map<Long, Task> stubTasks = new ConcurrentHashMap<>();
     private final AtomicLong idGenerator = new AtomicLong(1);
 
