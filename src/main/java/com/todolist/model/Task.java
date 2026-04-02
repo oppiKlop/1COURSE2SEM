@@ -13,7 +13,7 @@ public class Task {
     private Long id;
     private String title;
     private String description;
-    private boolean completed = false;
+    private boolean completed;
     private LocalDateTime createdAt;
     private LocalDate dueDate;
     private Priority priority;

@@ -5,33 +5,26 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import com.todolist.repository.TaskRepository;
 
+import java.util.Map;
+
 @Service
 public class TaskStatisticsService {
 
-    private final TaskRepository taskRepositoryInMemory;
-    private final TaskRepository taskRepositoryStub;
+    private final TaskRepository primary;
+    private final TaskRepository stub;
 
-    @Value("${app.name}")
-    private String appName;
+    public TaskStatisticsService(
+            TaskRepository primary,
+            @Qualifier("stubTaskRepository") TaskRepository stub) {
 
-    @Value("${app.version}")
-    private String appVersion;
-
-    @Value("${server.port}")
-    private String serverPort;
-
-    public TaskStatisticsService(TaskRepository taskRepositoryInMemory,
-                                 @Qualifier("repositoryStub") TaskRepository taskRepositoryStub) {
-        this.taskRepositoryInMemory = taskRepositoryInMemory;
-        this.taskRepositoryStub = taskRepositoryStub;
+        this.primary = primary;
+        this.stub = stub;
     }
 
-    public String compareBeanInfo() {
-        return "Primary bean: " + taskRepositoryInMemory + "\n"
-                + "Qualifier bean: " + taskRepositoryStub;
-    }
-
-    public String getAppInfo() {
-        return "App: " + appName + " " + appVersion +  " running on port: " + serverPort;
+    public Map<String, Integer> stats() {
+        return Map.of(
+                "primary", primary.findAll().size(),
+                "stub", stub.findAll().size()
+        );
     }
 }

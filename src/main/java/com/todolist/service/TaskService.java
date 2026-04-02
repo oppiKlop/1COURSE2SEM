@@ -1,10 +1,12 @@
 package com.todolist.service;
 
-import com.todolist.dto.TaskCreateDto;
 import com.todolist.dto.TaskUpdateDto;
+import com.todolist.exception.TaskNotFoundException;
 import com.todolist.mapper.TaskMapper;
 import com.todolist.model.Task;
 import com.todolist.repository.TaskRepository;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -12,38 +14,44 @@ import java.util.List;
 
 @Service
 public class TaskService {
-    private final TaskRepository taskRepository;
-    private final TaskMapper mapper;
 
-    public TaskService(TaskRepository taskRepository, TaskMapper mapper) {
-        this.taskRepository = taskRepository;
-        this.mapper = mapper;
+    private final TaskRepository repo;
+
+    public TaskService(TaskRepository repo) {
+        this.repo = repo;
     }
 
-    public List<Task> getAllTasks() {
-        return taskRepository.getAllTasks();
+    @PostConstruct
+    void init() {
+        System.out.println("INIT");
     }
 
-    public Task getTask(Long id) {
-        return taskRepository.getTask(id)
-                .orElseThrow(() -> new RuntimeException("Task not found"));
+    @PreDestroy
+    void destroy() {
+        System.out.println("DESTROY");
     }
 
-    public Task create(TaskCreateDto dto) {
-        Task task = mapper.toEntity(dto);
-        task.setCreatedAt(LocalDateTime.now());
-        return taskRepository.save(task);
+    public List<Task> all() {
+        return repo.findAll();
     }
 
-    public Task update(Long id, TaskUpdateDto dto) {
-        Task task = getTask(id);
-
-        mapper.updateEntity(dto, task);
-
-        return taskRepository.save(task);
+    public Task get(Long id) {
+        return repo.findById(id)
+                .orElseThrow(TaskNotFoundException::new);
     }
 
-    public void deleteTask(Long id) {
-        taskRepository.deleteTask(id);
+    public Task create(Task t) {
+        t.setCreatedAt(LocalDateTime.now());
+        return repo.save(t);
+    }
+
+    public Task update(Long id, TaskUpdateDto dto, TaskMapper mapper) {
+        Task t = get(id);
+        mapper.update(dto, t);
+        return repo.save(t);
+    }
+
+    public void delete(Long id) {
+        repo.delete(id);
     }
 }

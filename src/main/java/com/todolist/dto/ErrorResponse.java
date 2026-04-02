@@ -7,10 +7,10 @@ import java.util.Map;
 
 @Data
 public class ErrorResponse {
-  private Instant timestamp;
-  private int status;
-  private String error;
-  private String message;
-  private String path;
-  private Map<String, Object> details;
+  public Instant timestamp = Instant.now();
+  public int status;
+  public String error;
+  public String message;
+  public String path;
+  public Map<String, Object> details;
 }

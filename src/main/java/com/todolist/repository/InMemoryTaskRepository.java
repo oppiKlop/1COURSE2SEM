@@ -1,7 +1,6 @@
 package com.todolist.repository;
 
 import com.todolist.model.Task;
-import com.todolist.repository.TaskRepository;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Repository;
 
@@ -15,31 +14,24 @@ import java.util.concurrent.atomic.AtomicLong;
 @Repository
 @Primary
 public class InMemoryTaskRepository implements TaskRepository {
+    private final Map<Long, Task> map = new ConcurrentHashMap<>();
+    private final AtomicLong id = new AtomicLong();
 
-    private final Map<Long, Task> tasks = new ConcurrentHashMap<>();
-    private final AtomicLong idGenerator = new AtomicLong(1);
-
-    @Override
-    public List<Task> getAllTasks() {
-        return new ArrayList<>(tasks.values());
+    public List<Task> findAll() {
+        return new ArrayList<>(map.values());
     }
 
-    @Override
-    public Optional<Task> getTask(Long id) {
-        return Optional.ofNullable(tasks.get(id));
+    public Optional<Task> findById(Long id) {
+        return Optional.ofNullable(map.get(id));
     }
 
-    @Override
-    public Task save(Task task) {
-        if (task.getId() == null) {
-            task.setId(idGenerator.getAndIncrement());
-        }
-        tasks.put(task.getId(), task);
-        return task;
+    public Task save(Task t) {
+        if (t.getId() == null) t.setId(id.incrementAndGet());
+        map.put(t.getId(), t);
+        return t;
     }
 
-    @Override
-    public void deleteTask(Long id) {
-        tasks.remove(id);
+    public void delete(Long id) {
+        map.remove(id);
     }
 }

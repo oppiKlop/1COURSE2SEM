@@ -11,33 +11,11 @@ import org.springframework.stereotype.Component;
 @Aspect
 @Component
 public class LoggingAspect {
-
-    private static final Logger log = LoggerFactory.getLogger(LoggingAspect.class);
-
-    @Around("execution(* com.todolist.service.*.*(..))")
-    public Object logAround(ProceedingJoinPoint joinPoint) throws Throwable {
-        String methodName = joinPoint.getSignature().getName();
-        String className = joinPoint.getTarget().getClass().getSimpleName();
-        Object[] args = joinPoint.getArgs();
-
-        log.info("НАЧАЛО: {}.{}() | Аргументы: {}",
-                className, methodName, args);
-
-        long startTime = System.currentTimeMillis();
-
-        try {
-            Object result = joinPoint.proceed();
-
-            long endTime = System.currentTimeMillis();
-            log.info("КОНЕЦ: {}.{}() | Результат: {} | Время: {} мс",
-                    className, methodName, result, (endTime - startTime));
-
-            return result;
-
-        } catch (Exception e) {
-            log.error("{}.{}() | Ошибка: {}",
-                    className, methodName, e.getMessage());
-            throw e;
-        }
+    @Around("execution(* ..service..*(..))")
+    public Object log(ProceedingJoinPoint jp) throws Throwable {
+        System.out.println("START " + jp.getSignature());
+        Object res = jp.proceed();
+        System.out.println("END " + jp.getSignature());
+        return res;
     }
 }

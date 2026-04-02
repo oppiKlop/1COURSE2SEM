@@ -10,20 +10,19 @@ import java.time.LocalDate;
 import java.util.Set;
 
 public class TaskCreateDto {
-
-  @NotBlank
-  @Size(min = 3, max = 100)
-  private String title;
+  @NotBlank(groups = OnCreate.class)
+  @Size(min = 3, max = 100, groups = OnCreate.class)
+  public String title;
 
   @Size(max = 500)
-  private String description;
+  public String description;
 
   @FutureOrPresent
-  private LocalDate dueDate;
+  public LocalDate dueDate;
 
-  @NotNull
-  private Priority priority;
+  @NotNull(groups = OnCreate.class)
+  public Priority priority;
 
   @Size(max = 5)
-  private Set<String> tags;
+  public Set<String> tags;
 }

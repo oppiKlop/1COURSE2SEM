@@ -12,7 +12,7 @@ public interface TaskMapper {
 
   Task toEntity(TaskCreateDto dto);
 
-  void updateEntity(TaskUpdateDto dto, @MappingTarget Task task);
+  void update(TaskUpdateDto dto, @MappingTarget Task task);
 
-  TaskResponseDto toResponseDto(Task task);
+  TaskResponseDto toDto(Task task);
 }
