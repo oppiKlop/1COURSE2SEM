@@ -1,10 +1,12 @@
 package com.todolist.model;
 
-import lombok.Data;
-
 import java.time.LocalDateTime;
 
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 @Data
+@NoArgsConstructor
 public class TaskAttachment {
   private Long id;
   private Long taskId;

@@ -1,5 +1,8 @@
 package com.todolist.controller;
 
+import com.todolist.dto.*;
+import com.todolist.exception.TaskNotFoundException;
+import com.todolist.model.Priority;
 import com.todolist.model.Task;
 import com.todolist.service.TaskService;
 import org.junit.jupiter.api.Test;
@@ -9,7 +12,10 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.ResponseEntity;
 
-import java.util.Arrays;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -24,99 +30,188 @@ public class TestTaskController {
     @MockBean
     private TaskService taskService;
 
+    private Task task(long id) {
+        Task t = new Task();
+        t.setId(id);
+        t.setTitle("t" + id);
+        t.setDescription("d" + id);
+        t.setCompleted(id % 2 == 0);
+        t.setCreatedAt(LocalDateTime.now().minusDays(1));
+        t.setDueDate(LocalDate.now().plusDays(2));
+        t.setPriority(Priority.LOW);
+        t.setTags(Set.of("tag"));
+        return t;
+    }
+
     @Test
     void getAllTasksShouldReturnList() {
-        Task task1 = Task.builder().id(1L).title("Задача 1").description("Описание 1").build();
-        Task task2 = Task.builder().id(2L).title("Задача 2").description("Описание 2").build();
-        when(taskService.getAllTasks()).thenReturn(Arrays.asList(task1, task2));
+        when(taskService.all()).thenReturn(List.of(task(1), task(2)));
 
-        ResponseEntity<Task[]> response = restTemplate.getForEntity("/api/tasks", Task[].class);
+        ResponseEntity<TaskResponseDto[]> response =
+            restTemplate.getForEntity("/api/tasks", TaskResponseDto[].class);
 
         assertThat(response.getStatusCode().value()).isEqualTo(200);
         assertThat(response.getBody()).isNotNull();
         assertThat(response.getBody().length).isEqualTo(2);
+        assertThat(response.getHeaders().getFirst("X-Total-Count")).isEqualTo("2");
+        assertThat(response.getHeaders().getFirst("X-API-Version")).isEqualTo("2.0.0");
     }
 
     @Test
-    void getAllTasksShouldReturnEmptyList() {
-        when(taskService.getAllTasks()).thenReturn(Arrays.asList());
+    void getAllTasksShouldReturn500_WhenServiceThrows() {
+        when(taskService.all()).thenThrow(new RuntimeException("boom"));
 
-        ResponseEntity<Task[]> response = restTemplate.getForEntity("/api/tasks", Task[].class);
+        ResponseEntity<ErrorResponse> response =
+            restTemplate.getForEntity("/api/tasks", ErrorResponse.class);
 
-        assertThat(response.getStatusCode().value()).isEqualTo(200);
+        assertThat(response.getStatusCode().value()).isEqualTo(500);
+        assertThat(response.getHeaders().getFirst("X-API-Version")).isEqualTo("2.0.0");
         assertThat(response.getBody()).isNotNull();
-        assertThat(response.getBody().length).isEqualTo(0);
     }
 
     @Test
     void getTaskByIdShouldReturnTask() {
-        Long id = 1L;
-        Task task = Task.builder().id(id).title("Test").description("Description").build();
-        when(taskService.getTask(id)).thenReturn(task);
+        long id = 1L;
+        when(taskService.get(id)).thenReturn(task(id));
 
-        ResponseEntity<Task> response = restTemplate.getForEntity("/api/tasks/{id}", Task.class, id);
+        ResponseEntity<TaskResponseDto> response =
+            restTemplate.getForEntity("/api/tasks/{id}", TaskResponseDto.class, id);
 
         assertThat(response.getStatusCode().value()).isEqualTo(200);
         assertThat(response.getBody()).isNotNull();
         assertThat(response.getBody().getId()).isEqualTo(id);
-        assertThat(response.getBody().getTitle()).isEqualTo("Test");
+        assertThat(response.getBody().getTitle()).isEqualTo("t" + id);
+        assertThat(response.getHeaders().getFirst("X-API-Version")).isEqualTo("2.0.0");
     }
 
     @Test
     void getTaskByIdShouldReturnError_WhenTaskNotFound() {
-        Long id = 999L;
-        when(taskService.getTask(id)).thenThrow(new RuntimeException("Задача не найдена"));
+        long id = 999L;
+        when(taskService.get(id)).thenThrow(new TaskNotFoundException());
 
-        ResponseEntity<String> response = restTemplate.getForEntity("/api/tasks/{id}", String.class, id);
+        ResponseEntity<ErrorResponse> response =
+            restTemplate.getForEntity("/api/tasks/{id}", ErrorResponse.class, id);
 
-        assertThat(response.getStatusCode().value()).isEqualTo(500);
+        assertThat(response.getStatusCode().value()).isEqualTo(404);
+        assertThat(response.getHeaders().getFirst("X-API-Version")).isEqualTo("2.0.0");
+        assertThat(response.getBody()).isNotNull();
     }
 
     @Test
     void updateTaskShouldUpdateTask() {
-        Long id = 1L;
-        Task updatedTask = Task.builder().id(id).title("Обновлено").description("нью описание").build();
-        when(taskService.updateTask(anyLong(), anyString(), anyString(), anyBoolean())).thenReturn(updatedTask);
+        long id = 1L;
+        Task updated = task(id);
+        updated.setTitle("updated");
 
-        restTemplate.put("/api/tasks/{id}", updatedTask, id);
+        TaskUpdateDto dto = new TaskUpdateDto();
+        dto.setTitle("updated");
+        dto.setDescription("new description");
 
-        when(taskService.getTask(id)).thenReturn(updatedTask);
-        ResponseEntity<Task> response = restTemplate.getForEntity("/api/tasks/{id}", Task.class, id);
+        when(taskService.update(eq(id), any(TaskUpdateDto.class))).thenReturn(updated);
 
-        assertThat(response.getBody().getTitle()).isEqualTo("Обновлено");
+        org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
+        headers.setContentType(org.springframework.http.MediaType.APPLICATION_JSON);
+
+        ResponseEntity<TaskResponseDto> response =
+            restTemplate.exchange(
+                "/api/tasks/{id}",
+                org.springframework.http.HttpMethod.PUT,
+                new org.springframework.http.HttpEntity<>(dto, headers),
+                TaskResponseDto.class,
+                id
+            );
+
+        assertThat(response.getStatusCode().value()).isEqualTo(200);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().getTitle()).isEqualTo("updated");
+        assertThat(response.getHeaders().getFirst("X-API-Version")).isEqualTo("2.0.0");
+        verify(taskService, times(1)).update(eq(id), any(TaskUpdateDto.class));
     }
 
     @Test
-    void updateTaskShouldReturnErrorWhenTaskNotFound() {
-        Long id = 999L;
-        Task task = Task.builder().id(id).description("fewilanfem").title("velhjvbs").build();
-        when(taskService.updateTask(999L, null, null, true)).thenThrow(new RuntimeException("Задача не найдена"));
+    void updateTaskShouldReturn400_WhenValidationFails() {
+        long id = 1L;
 
-        restTemplate.put("/api/tasks/{id}", task, id);
+        TaskUpdateDto dto = new TaskUpdateDto();
+        dto.setTitle("ab");
 
-        when(taskService.getTask(id)).thenThrow(new RuntimeException("Задача не найдена"));
-        ResponseEntity<String> response = restTemplate.getForEntity("/api/tasks/{id}", String.class, id);
+        org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
+        headers.setContentType(org.springframework.http.MediaType.APPLICATION_JSON);
 
-        assertThat(response.getStatusCode().value()).isEqualTo(500);
+        ResponseEntity<ErrorResponse> response = restTemplate
+            .exchange("/api/tasks/{id}", org.springframework.http.HttpMethod.PUT, new org.springframework.http.HttpEntity<>(dto, headers),
+                ErrorResponse.class, id);
+
+        assertThat(response.getStatusCode().value()).isEqualTo(400);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getHeaders().getFirst("X-API-Version")).isEqualTo("2.0.0");
+        verify(taskService, never()).update(anyLong(), any(TaskUpdateDto.class));
     }
 
     @Test
-    void deleteTaskShouldDeleteTask() {
-        Long id = 1L;
-        doNothing().when(taskService).deleteTask(id);
+    void createTaskShouldReturn201_WhenValid() {
+        TaskCreateDto dto = new TaskCreateDto();
+        dto.setTitle("New task");
+        dto.setDescription("desc");
+        dto.setDueDate(LocalDate.now().plusDays(1));
+        dto.setPriority(Priority.MEDIUM);
+        dto.setTags(Set.of("tag1"));
 
-        restTemplate.delete("/api/tasks/{id}", id);
+        Task created = task(10);
+        created.setTitle(dto.getTitle());
 
-        verify(taskService, times(1)).deleteTask(id);
+        when(taskService.create(any(Task.class))).thenReturn(created);
+
+        ResponseEntity<TaskResponseDto> response =
+            restTemplate.postForEntity("/api/tasks", dto, TaskResponseDto.class);
+
+        assertThat(response.getStatusCode().value()).isEqualTo(201);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getHeaders().getFirst("X-API-Version")).isEqualTo("2.0.0");
     }
 
     @Test
-    void deleteTaskShouldReturnError_WhenTaskNotFound() {
-        Long id = 999L;
-        doThrow(new RuntimeException("Задача не найдена")).when(taskService).deleteTask(id);
+    void createTaskShouldReturn400_WhenDueDateInPast() {
+        TaskCreateDto dto = new TaskCreateDto();
+        dto.setTitle("New task");
+        dto.setDescription("desc");
+        dto.setDueDate(LocalDate.now().minusDays(1));
+        dto.setPriority(Priority.MEDIUM);
+        dto.setTags(Set.of("tag1"));
 
-        restTemplate.delete("/api/tasks/{id}", id);
+        ResponseEntity<ErrorResponse> response =
+            restTemplate.postForEntity("/api/tasks", dto, ErrorResponse.class);
 
-        verify(taskService, times(1)).deleteTask(id);
+        assertThat(response.getStatusCode().value()).isEqualTo(400);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getHeaders().getFirst("X-API-Version")).isEqualTo("2.0.0");
+        verify(taskService, never()).create(any(Task.class));
+    }
+
+    @Test
+    void deleteTaskShouldReturn204_WhenExists() {
+        long id = 1L;
+        doNothing().when(taskService).delete(id);
+
+        ResponseEntity<Void> response = restTemplate
+            .exchange("/api/tasks/{id}", org.springframework.http.HttpMethod.DELETE, null, Void.class, id);
+
+        assertThat(response.getStatusCode().value()).isEqualTo(204);
+        assertThat(response.getHeaders().getFirst("X-API-Version")).isEqualTo("2.0.0");
+        verify(taskService, times(1)).delete(id);
+    }
+
+    @Test
+    void deleteTaskShouldReturn404_WhenTaskNotFound() {
+        long id = 999L;
+        doThrow(new TaskNotFoundException()).when(taskService).delete(id);
+
+        ResponseEntity<ErrorResponse> response = restTemplate
+            .exchange("/api/tasks/{id}", org.springframework.http.HttpMethod.DELETE, null, ErrorResponse.class, id);
+
+        assertThat(response.getStatusCode().value()).isEqualTo(404);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getHeaders().getFirst("X-API-Version")).isEqualTo("2.0.0");
+        verify(taskService, times(1)).delete(id);
     }
 }

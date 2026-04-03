@@ -16,7 +16,7 @@ public class TaskLifeCycleProcessor implements BeanPostProcessor {
     @Override
     public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
         if (bean instanceof TaskService || bean instanceof TaskRepository) {
-            log.info("До инициализации бина: {} (класс: {})",
+            log.info("Создание/before-init бина: {} (класс: {})",
                     beanName, bean.getClass().getSimpleName());
         }
         return bean;
@@ -25,7 +25,7 @@ public class TaskLifeCycleProcessor implements BeanPostProcessor {
     @Override
     public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
         if (bean instanceof TaskService || bean instanceof TaskRepository) {
-            log.info("После инициализации бина: {} (класс: {})",
+            log.info("Инициализация завершена: {} (класс: {})",
                     beanName, bean.getClass().getSimpleName());
         }
         return bean;

@@ -1,16 +1,20 @@
 package com.todolist.dto;
 
-import lombok.Data;
-
 import java.time.Instant;
 import java.util.Map;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Schema(description = "Standard error response")
 @Data
+@NoArgsConstructor
 public class ErrorResponse {
-  public Instant timestamp = Instant.now();
-  public int status;
-  public String error;
-  public String message;
-  public String path;
-  public Map<String, Object> details;
+  private Instant timestamp = Instant.now();
+  private int status;
+  private String error;
+  private String message;
+  private String path;
+  private Map<String, Object> details;
 }

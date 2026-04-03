@@ -15,8 +15,8 @@ public class PrototypeScopedBean {
         System.out.println("СОЗДАН НОВЫЙ PrototypeScopedBean: " + instanceId);
     }
 
-    public String generateTaskId() {
-        return "TASK: " + UUID.randomUUID().toString().substring(0, 8);
+    public long generateTaskId() {
+        return UUID.randomUUID().getMostSignificantBits() & Long.MAX_VALUE;
     }
 
     public String getInstanceId() {
