@@ -42,6 +42,9 @@ public class FavoritesController {
     if (list == null) {
       list = new ArrayList<>();
     }
+    // Сессия может содержать неизменяемый список (например, List.of в тестах),
+    // поэтому создаём копию перед модификацией.
+    list = new ArrayList<>(list);
     if (!list.contains(id)) {
       list.add(id);
       s.setAttribute("favoriteTaskIds", list);
@@ -57,8 +60,9 @@ public class FavoritesController {
     if (list == null) {
       return ResponseEntity.noContent().header("X-API-Version", apiVersion).build();
     }
-    list.remove(id);
-    s.setAttribute("favoriteTaskIds", list);
+    List<Long> updated = new ArrayList<>(list);
+    updated.remove(id);
+    s.setAttribute("favoriteTaskIds", updated);
     return ResponseEntity.noContent().header("X-API-Version", apiVersion).build();
   }
 
