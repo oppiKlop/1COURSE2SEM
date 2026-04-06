@@ -1,16 +1,14 @@
 package com.todolist.repository;
 
 import com.todolist.model.TaskAttachment;
+import org.springframework.data.jpa.repository.JpaRepository;
 
-import java.util.*;
+import java.util.List;
+import java.util.Collection;
 
-public interface TaskAttachmentRepository {
+public interface TaskAttachmentRepository extends JpaRepository<TaskAttachment, Long> {
 
-  TaskAttachment save(TaskAttachment attachment);
+  List<TaskAttachment> findByTask_Id(Long taskId);
 
-  Optional<TaskAttachment> findById(Long id);
-
-  List<TaskAttachment> findByTaskId(Long taskId);
-
-  void delete(Long id);
+  List<TaskAttachment> findByTask_IdIn(Collection<Long> taskIds);
 }
