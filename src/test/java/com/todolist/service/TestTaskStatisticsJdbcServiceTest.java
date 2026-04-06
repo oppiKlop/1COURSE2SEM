@@ -2,7 +2,9 @@ package com.todolist.service;
 
 import com.todolist.model.Priority;
 import com.todolist.model.Task;
+import com.todolist.repository.TaskAttachmentRepository;
 import com.todolist.repository.TaskRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -24,6 +26,15 @@ class TestTaskStatisticsJdbcServiceTest {
 
   @Autowired
   private TaskRepository taskRepository;
+
+  @Autowired
+  private TaskAttachmentRepository taskAttachmentRepository;
+
+  @BeforeEach
+  void cleanDb() {
+    taskAttachmentRepository.deleteAllInBatch();
+    taskRepository.deleteAllInBatch();
+  }
 
   @Test
   void getTasksCountByPriority_shouldReturnAggregatedCounts() {
