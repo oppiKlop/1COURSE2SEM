@@ -3,6 +3,7 @@ package com.todolist.controller;
 import com.todolist.exception.GlobalHandler;
 import com.todolist.exception.TaskNotFoundException;
 import com.todolist.model.TaskAttachment;
+import com.todolist.model.Task;
 import com.todolist.service.AttachmentService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +14,8 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestPropertySource;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.mock.web.MockMultipartFile;
@@ -31,6 +34,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(controllers = AttachmentController.class)
 @Import(GlobalHandler.class)
+@ActiveProfiles("test")
+@TestPropertySource(properties = "app.jpa.auditing.enabled=false")
 class TestAttachmentController {
 
   @Autowired
@@ -46,7 +51,9 @@ class TestAttachmentController {
 
     TaskAttachment att = new TaskAttachment();
     att.setId(10L);
-    att.setTaskId(taskId);
+    Task task = new Task();
+    task.setId(taskId);
+    att.setTask(task);
     att.setFileName("hello.txt");
     att.setStoredFileName("uuid");
     att.setContentType("text/plain");
