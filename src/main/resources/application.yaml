@@ -15,3 +15,7 @@ spring:
   web:
     resources:
       add-mappings: false
+  flyway:
+    enabled: true
+  jpa:
+    open-in-view: false
