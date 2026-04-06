@@ -1,6 +1,8 @@
 package com.todolist.service;
 
 import com.todolist.model.TaskAttachment;
+import com.todolist.model.Task;
+import com.todolist.repository.TaskRepository;
 import com.todolist.repository.TaskAttachmentRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.core.io.FileSystemResource;
@@ -18,10 +20,12 @@ import java.util.UUID;
 
 @Service
 public class AttachmentService {
+  private final TaskRepository taskRepository;
   private final TaskAttachmentRepository repository;
   private final Path uploadDir = Paths.get("uploads");
 
-  public AttachmentService(TaskAttachmentRepository repository) {
+  public AttachmentService(TaskRepository taskRepository, TaskAttachmentRepository repository) {
+    this.taskRepository = taskRepository;
     this.repository = repository;
   }
 
@@ -41,7 +45,9 @@ public class AttachmentService {
     Files.copy(file.getInputStream(), target);
 
     TaskAttachment attachment = new TaskAttachment();
-    attachment.setTaskId(taskId);
+    Task task = taskRepository.findById(taskId)
+        .orElseThrow(com.todolist.exception.TaskNotFoundException::new);
+    attachment.setTask(task);
     attachment.setFileName(originalFileName);
     attachment.setStoredFileName(storedFileName);
     attachment.setContentType(contentType);
@@ -63,7 +69,7 @@ public class AttachmentService {
   }
 
   public List<TaskAttachment> getAttachmentsByTaskId(Long taskId) {
-    return repository.findByTaskId(taskId);
+    return repository.findByTask_Id(taskId);
   }
 
   public void deleteAttachment(Long attachmentId) throws IOException {
@@ -73,7 +79,7 @@ public class AttachmentService {
     try {
       Files.deleteIfExists(filePath);
     } finally {
-      repository.delete(attachmentId);
+      repository.deleteById(attachmentId);
     }
   }
 
