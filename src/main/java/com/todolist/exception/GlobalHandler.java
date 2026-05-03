@@ -12,11 +12,16 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.NoHandlerFoundException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.TimeoutException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.env.Environment;
 import org.springframework.core.env.Profiles;
 import org.springframework.beans.factory.annotation.Value;
+import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
+import io.github.resilience4j.ratelimiter.RequestNotPermitted;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.web.client.ResourceAccessException;
 
 @RestControllerAdvice
 public class GlobalHandler {
@@ -79,17 +84,77 @@ public class GlobalHandler {
   }
 
   @ExceptionHandler(TaskNotFoundException.class)
-  public ResponseEntity<ErrorResponse> notFound(HttpServletRequest req) {
+  public ResponseEntity<ErrorResponse> notFound(TaskNotFoundException ex, HttpServletRequest req) {
 
     ErrorResponse err = new ErrorResponse();
     err.setStatus(404);
     err.setError("Not Found");
-    err.setMessage("Task not found");
+    err.setMessage(ex.getMessage() == null ? "Task not found" : ex.getMessage());
     err.setPath(req.getRequestURI());
 
     return ResponseEntity.status(404)
         .header("X-API-Version", apiVersion)
         .body(err);
+  }
+
+  @ExceptionHandler(ExternalApiException.class)
+  public ResponseEntity<ErrorResponse> externalError(ExternalApiException ex, HttpServletRequest req) {
+    ErrorResponse err = new ErrorResponse();
+    err.setStatus(502);
+    err.setError("Bad Gateway");
+    err.setMessage(ex.getMessage());
+    err.setPath(req.getRequestURI());
+    return ResponseEntity.status(502).body(err);
+  }
+
+  @ExceptionHandler(RequestNotPermitted.class)
+  public ResponseEntity<ErrorResponse> rateLimited(RequestNotPermitted ex, HttpServletRequest req) {
+    ErrorResponse err = new ErrorResponse();
+    err.setStatus(429);
+    err.setError("Too Many Requests");
+    err.setMessage("Rate limit exceeded for external API calls");
+    err.setPath(req.getRequestURI());
+    return ResponseEntity.status(429).body(err);
+  }
+
+  @ExceptionHandler(CallNotPermittedException.class)
+  public ResponseEntity<ErrorResponse> circuitOpen(CallNotPermittedException ex, HttpServletRequest req) {
+    ErrorResponse err = new ErrorResponse();
+    err.setStatus(503);
+    err.setError("Service Unavailable");
+    err.setMessage("Circuit breaker is OPEN for external API");
+    err.setPath(req.getRequestURI());
+    return ResponseEntity.status(503).body(err);
+  }
+
+  @ExceptionHandler(ResourceAccessException.class)
+  public ResponseEntity<ErrorResponse> resourceAccess(ResourceAccessException ex, HttpServletRequest req) {
+    ErrorResponse err = new ErrorResponse();
+    err.setStatus(504);
+    err.setError("Gateway Timeout");
+    err.setMessage("External API unreachable or timed out");
+    err.setPath(req.getRequestURI());
+    return ResponseEntity.status(HttpStatus.GATEWAY_TIMEOUT).body(err);
+  }
+
+  @ExceptionHandler({TimeoutException.class, java.net.SocketTimeoutException.class})
+  public ResponseEntity<ErrorResponse> timeout(Exception ex, HttpServletRequest req) {
+    ErrorResponse err = new ErrorResponse();
+    err.setStatus(504);
+    err.setError("Gateway Timeout");
+    err.setMessage("External API timeout");
+    err.setPath(req.getRequestURI());
+    return ResponseEntity.status(504).body(err);
+  }
+
+  @ExceptionHandler(AccessDeniedException.class)
+  public ResponseEntity<ErrorResponse> forbidden(AccessDeniedException ex, HttpServletRequest req) {
+    ErrorResponse err = new ErrorResponse();
+    err.setStatus(403);
+    err.setError("Forbidden");
+    err.setMessage("Access denied");
+    err.setPath(req.getRequestURI());
+    return ResponseEntity.status(403).body(err);
   }
 
   @ExceptionHandler(MissingServletRequestParameterException.class)

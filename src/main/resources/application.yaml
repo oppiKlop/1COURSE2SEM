@@ -4,6 +4,15 @@ server:
 app:
   name: "To-Do List API"
   version: 2.0.0
+  security:
+    pepper: "change-me-pepper"
+    jwt:
+      secret: "change-me-super-secret-key-with-at-least-32-bytes"
+      ttl-seconds: 3600
+  external:
+    base-url: "http://127.0.0.1:${server.port}"
+    connect-timeout-ms: 1000
+    read-timeout-ms: 2000
 
 spring:
   servlet:
@@ -19,3 +28,29 @@ spring:
     enabled: true
   jpa:
     open-in-view: false
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,metrics
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      externalApi:
+        slidingWindowType: COUNT_BASED
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 5
+        failureRateThreshold: 50
+        waitDurationInOpenState: 10s
+        permittedNumberOfCallsInHalfOpenState: 3
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+        ignoreExceptions:
+          - com.todolist.exception.TaskNotFoundException
+  ratelimiter:
+    instances:
+      externalApi:
+        limitForPeriod: 5
+        limitRefreshPeriod: 1s
+        timeoutDuration: 0

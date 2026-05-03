@@ -4,22 +4,24 @@ import com.todolist.exception.GlobalHandler;
 import com.todolist.exception.TaskNotFoundException;
 import com.todolist.model.TaskAttachment;
 import com.todolist.model.Task;
+import com.todolist.security.JwtAuthFilter;
 import com.todolist.service.AttachmentService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
+import org.springframework.boot.autoconfigure.security.servlet.SecurityFilterAutoConfiguration;
+import org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 
-import org.springframework.http.ResponseEntity;
 import org.springframework.mock.web.MockMultipartFile;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.context.annotation.Import;
 
 import java.time.LocalDateTime;
@@ -30,13 +32,26 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
-@WebMvcTest(controllers = AttachmentController.class)
+@WebMvcTest(
+    controllers = AttachmentController.class,
+    excludeAutoConfiguration = {
+        SecurityAutoConfiguration.class,
+        SecurityFilterAutoConfiguration.class,
+        UserDetailsServiceAutoConfiguration.class,
+    })
+@AutoConfigureMockMvc(addFilters = false)
 @Import(GlobalHandler.class)
 @ActiveProfiles("test")
-@TestPropertySource(properties = "app.jpa.auditing.enabled=false")
+@TestPropertySource(
+    properties = {
+      "app.jpa.auditing.enabled=false",
+      "app.version=2.0.0",
+    })
 class TestAttachmentController {
+
+  @MockBean
+  private JwtAuthFilter jwtAuthFilter;
 
   @Autowired
   private MockMvc mockMvc;

@@ -5,9 +5,14 @@ import com.todolist.exception.TaskNotFoundException;
 import com.todolist.mapper.TaskMapper;
 import com.todolist.model.Priority;
 import com.todolist.model.Task;
+import com.todolist.security.JwtAuthFilter;
 import com.todolist.service.TaskService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
+import org.springframework.boot.autoconfigure.security.servlet.SecurityFilterAutoConfiguration;
+import org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -25,10 +30,20 @@ import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@WebMvcTest(controllers = FavoritesController.class)
+@WebMvcTest(
+    controllers = FavoritesController.class,
+    excludeAutoConfiguration = {
+        SecurityAutoConfiguration.class,
+        SecurityFilterAutoConfiguration.class,
+        UserDetailsServiceAutoConfiguration.class,
+    })
+@AutoConfigureMockMvc(addFilters = false)
 @ActiveProfiles("test")
 @TestPropertySource(properties = "app.jpa.auditing.enabled=false")
 class TestFavoritesController {
+
+  @MockBean
+  private JwtAuthFilter jwtAuthFilter;
 
   @Autowired
   private MockMvc mockMvc;

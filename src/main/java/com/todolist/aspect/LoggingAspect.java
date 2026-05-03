@@ -1,13 +1,13 @@
 package com.todolist.aspect;
 
+import com.todolist.exception.TaskNotFoundException;
+import java.util.Arrays;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
-
-import java.util.Arrays;
 
 
 @Aspect
@@ -25,6 +25,9 @@ public class LoggingAspect {
       Object result = jp.proceed();
       log.info("Service end: {} result={}", signature, result);
       return result;
+    } catch (TaskNotFoundException ex) {
+      log.info("Service not found: {} args={} — {}", signature, Arrays.toString(args), ex.getMessage());
+      throw ex;
     } catch (Throwable ex) {
       log.error("Service error: {} args={}", signature, Arrays.toString(args), ex);
       throw ex;
