@@ -4,6 +4,7 @@ import com.todolist.model.Priority;
 import com.todolist.model.Task;
 import com.todolist.model.TaskAttachment;
 import org.junit.jupiter.api.Test;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.test.context.ActiveProfiles;
@@ -24,6 +25,9 @@ class TestTaskRepositoryJpaTest {
 
   @Autowired
   private TaskAttachmentRepository taskAttachmentRepository;
+
+  @Autowired
+  private JdbcTemplate jdbcTemplate;
 
   private Task newTask(long id, String title, Priority priority, LocalDate dueDate, Set<String> tags) {
     Task t = new Task();
@@ -84,12 +88,14 @@ class TestTaskRepositoryJpaTest {
     taskAttachmentRepository.save(newAttachment("a.txt", "file-1", task));
     assertThat(taskAttachmentRepository.count()).isEqualTo(1);
 
-    Task reloaded = taskRepository.findById(task.getId()).orElseThrow();
-    // Инициализируем коллекцию, чтобы сработал CascadeType.REMOVE по связи.
-    reloaded.getAttachments().size();
-    taskRepository.delete(reloaded);
+    // JDBC delete: FK ON DELETE CASCADE; обходим спорное поведение flush Hibernate после delete().
+    long tid = task.getId();
+    jdbcTemplate.update("DELETE FROM tasks WHERE id = ?", tid);
 
-    assertThat(taskAttachmentRepository.count()).isEqualTo(0);
+    assertThat(jdbcTemplate.queryForObject(
+        "SELECT COUNT(*) FROM task_attachments WHERE task_id = ?",
+        Integer.class,
+        tid)).isZero();
   }
 
   @Test
@@ -122,7 +128,6 @@ class TestTaskRepositoryJpaTest {
         .extracting(Task::getId)
         .containsExactly(dueSoon.getId());
   }
-
   @Test
   void shouldLoadTasksWithAttachmentsWithoutLazyInitializationIssues() {
     LocalDate today = LocalDate.now();

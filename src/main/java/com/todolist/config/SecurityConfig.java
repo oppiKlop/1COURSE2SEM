@@ -3,6 +3,7 @@ package com.todolist.config;
 import com.todolist.security.JwtAuthFilter;
 import com.todolist.security.RestAccessDeniedHandler;
 import com.todolist.security.RestAuthenticationEntryPoint;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -23,6 +24,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 @Configuration
 @EnableMethodSecurity
+@ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
 public class SecurityConfig {
   @Bean
   public SecurityFilterChain securityFilterChain(
