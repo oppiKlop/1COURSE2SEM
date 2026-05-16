@@ -69,7 +69,6 @@ public class SecurityConfig {
             .password(encodedPassword)
             .roles("USER")
             .build(),
-        // Нельзя вызывать .roles(...) и затем .authorities(...) без потери ROLE_* — задаём явно.
         User.withUsername("reader")
             .password(encodedPassword)
             .authorities(
