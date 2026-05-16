@@ -1,0 +1,21 @@
+package com.todolist.validation;
+
+import jakarta.validation.Constraint;
+import jakarta.validation.Payload;
+
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
+@Target({ElementType.FIELD, ElementType.METHOD, ElementType.PARAMETER, ElementType.ANNOTATION_TYPE})
+@Retention(RetentionPolicy.RUNTIME)
+@Constraint(validatedBy = DueDateNotBeforeCreationValidator.class)
+public @interface DueDateNotBeforeCreation {
+  String message() default "dueDate must not be earlier than task creation date";
+
+  Class<?>[] groups() default {};
+
+  Class<? extends Payload>[] payload() default {};
+}
+
